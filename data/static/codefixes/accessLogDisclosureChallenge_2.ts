@@ -1,21 +1,10 @@
-/* /ftp directory browsing and file download */
-  app.use('/ftp', serveIndexMiddleware, serveIndex('ftp', { icons: true }))
-  app.use('/ftp(?!/quarantine)/:file', servePublicFiles())
-  app.use('/ftp/quarantine/:file', serveQuarantineFiles())
+app.use('/ftp',  express.static(path.resolve('ftp'), {index: false, redirect: false}))
 
-  app.use('/.well-known', serveIndexMiddleware, serveIndex('.well-known', { icons: true, view: 'details' }))
-  app.use('/.well-known', express.static('.well-known'))
+app.use('/support/logs', isAuthorized(), isAdmin(), express.static(path.resolve('logs')))
 
-  /* /encryptionkeys directory browsing */
-  app.use('/encryptionkeys', serveIndexMiddleware, serveIndex('encryptionkeys', { icons: true, view: 'details' }))
-  app.use('/encryptionkeys/:file', serveKeyFiles())
-
-  /* /logs directory browsing */
-  app.use('/support/logs', serveIndexMiddleware, serveIndex('logs', { icons: true }))
-  app.use('/support/logs/:file', serveLogFiles())
-
-  /* Swagger documentation for B2B v2 endpoints */
+if (process.env.NODE_ENV !== 'production') {
   app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument))
+}
 
-  app.use(express.static(path.resolve('frontend/dist/frontend')))
-  app.use(cookieParser('kekse'))
+app.use(express.static(path.resolve('frontend/dist/frontend')))
+app.use(cookieParser(process.env.COOKIE_SECRET))
